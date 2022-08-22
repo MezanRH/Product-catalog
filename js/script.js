@@ -10,9 +10,9 @@ const filterElm = document.querySelector('#filter');
 let products = []
 
 
-function showAllItemToUl(item){
+function showAllItemsToUl(items){
     listGroupElm.innerHTML = ''
-    filteredArr.forEach((item) => {
+    items.forEach(item => {
         const listElm = `<li class="list-group-item item-${item.id} collection-item">
     <strong>${item.name}</strong> <span class="price"> $${item.price}</span>
     <i class="fa-solid fa-trash-can delete-item float-end"></i>
@@ -23,9 +23,13 @@ function showAllItemToUl(item){
 }
 
 
+function updateAfterRemove(products, id){
+    return products.filter(product => product.id !== id)
+}
+
 
 function removeItemFromDataStor(id){
-    const productsAfterDelet = products.filter(product => product.id !== id)
+    const productsAfterDelet = updateAfterRemove(products, id)
     products = productsAfterDelet
 }
 
@@ -77,6 +81,48 @@ function validateInput(name, price){
     return isError
 }
 
+function addItemToStorage(product){
+    let products
+    if(localStorage.getItem('storeProduct')) {
+        products = JSON.parse(localStorage.getItem('storeProduct'))
+        products.push(product)
+        // Update item on dataStore
+        localStorage.setItem('storeProduct', JSON.stringify(products))
+    } else{
+        products = []
+        products.push(product)
+        // update item on dataStore
+        localStorage.setItem('storeProduct', JSON.stringify(products))
+    }
+
+}
+
+function addItemToStorage(product){
+    let products
+    if(localStorage.getItem('storeProduct')){
+        products = JSON.parse(localStorage.getItem('storeProduct'))
+        products.push(product)
+        // Update to localstorage
+        localStorage.setItem('storeProduct', JSON.stringify(products))
+    } else{
+        products = []
+        products.push(product)
+        localStorage.setItem('storeProduct', JSON.stringify(products))
+    }
+}
+
+
+function removeItemFromStorage(id){
+    //pick from localstorage
+    const products = JSON.parse(localStorage.getItem('storeProduct'))
+    // filter
+    const productsAfterRemove = updateAfterRemove(products, id)
+    // save data to localstorage
+    localStorage.setItem('storeProduct', JSON.stringify(productsAfterRemove))
+}
+
+
+
 function init(){
 
 
@@ -97,14 +143,18 @@ function init(){
         
             // ganarate id
             const id = products.length
-            // add item to data store
-            products.push({
+
+            const product = {
                 id: id,
                 name: nameInput,
                 price: priceInput,
-            })
+            }
+            // add item to data store
+            products.push(product)
             // add item to ul
             addItemToUl(id, nameInput, priceInput);
+            // add item to localstroage
+            addItemToStorage(product)
             //reset the input
             resetInput()
         
@@ -117,8 +167,10 @@ function init(){
     
             // delete item from ul
             removeItemFromUl(id)
-            
+            // delete item from data storage
             removeItemFromDataStor(id)
+            // delete item from localstorage
+            removeItemFromStorage(id)
         }
     })
     
@@ -126,10 +178,18 @@ function init(){
 filterElm.addEventListener('keyup', (evt) => {
     // filter depend on this value
     const filterValue = evt.target.value
-    filteredArr = products.filter((product) => product.name.includes(filterValue)
+    const filteredArr = products.filter((product) => product.name.includes(filterValue)
     )
-    showAllItemToUl(filteredArr)
+    showAllItemsToUl(filteredArr)
 })
+ document.addEventListener('DOMContentLoaded', (e) => {
+    // Checking item into localstorage
+    if(localStorage.getItem('storeProduct')) {
+        const products = JSON.parse(localStorage.getItem('storeProduct'))
+        showAllItemsToUl(products)
+    }
+ })
+
 
 }
 
